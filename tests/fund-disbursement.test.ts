@@ -1,21 +1,42 @@
+import { describe, it, expect, beforeEach } from 'vitest';
+import { mockBlockchain } from './helpers';
 
-import { describe, expect, it } from "vitest";
+// Mock the blockchain environment
+const blockchain = mockBlockchain();
 
-const accounts = simnet.getAccounts();
-const address1 = accounts.get("wallet_1")!;
-
-/*
-  The test below is an example. To learn more, read the testing documentation here:
-  https://docs.hiro.so/stacks/clarinet-js-sdk
-*/
-
-describe("example tests", () => {
-  it("ensures simnet is well initalised", () => {
-    expect(simnet.blockHeight).toBeDefined();
+describe('Funder Registration Contract', () => {
+  beforeEach(() => {
+    // Reset blockchain state before each test
+    blockchain.reset();
   });
-
-  // it("shows an example", () => {
-  //   const { result } = simnet.callReadOnlyFn("counter", "get-counter", [], address1);
-  //   expect(result).toBeUint(0);
-  // });
+  
+  it('should fail when registering with empty name', () => {
+    const result = blockchain.callPublic('register-funder', [
+      '',
+      'Supporting educational initiatives worldwide',
+      'www.education-foundation.org',
+      1000000
+    ]);
+    
+    expect(result.success).toBe(false);
+    expect(result.error).toBe(1);
+  });
+  
+  it('should update funder status', () => {
+    // First register a funder
+    blockchain.callPublic('register-funder', [
+      'Education Foundation',
+      'Supporting educational initiatives worldwide',
+      'www.education-foundation.org',
+      1000000
+    ]);
+    
+    // Update status to inactive
+    const result = blockchain.callPublic('update-funder-status', [1, false]);
+    expect(result.success).toBe(true);
+    
+    // Verify the status was updated
+    const funderDetails = blockchain.callReadOnly('get-funder', [1]);
+    expect(funderDetails.active).toBe(false);
+  });
 });
