@@ -1,62 +1,85 @@
-;; Funder Registration Contract
-;; Records details of grant-providing organizations
+;; Fund Disbursement Contract
+;; Manages payments for approved projects
 
-(define-data-var next-funder-id uint u1)
+(define-data-var next-grant-id uint u1)
 
-;; Define the funder data structure
-(define-map funders uint {
-  name: (string-ascii 100),
+;; Define the grant data structure
+(define-map grants uint {
+  applicant-id: uint,
+  funder-id: uint,
+  amount: uint,
   description: (string-ascii 500),
-  website: (string-ascii 100),
-  contact-address: principal,
-  active: bool,
-  total-funds-committed: uint,
-  registration-time: uint
+  status: (string-ascii 20), ;; "pending", "approved", "rejected", "disbursed"
+  creation-time: uint,
+  disbursement-time: uint
 })
 
-;; Register a new funder
-(define-public (register-funder
-    (name (string-ascii 100))
-    (description (string-ascii 500))
-    (website (string-ascii 100))
-    (funds-committed uint))
-  (let ((funder-id (var-get next-funder-id)))
-    (asserts! (> (len name) u0) (err u1)) ;; Name cannot be empty
-    (asserts! (> funds-committed u0) (err u2)) ;; Must commit some funds
+;; Create a new grant request
+(define-public (create-grant
+    (applicant-id uint)
+    (funder-id uint)
+    (amount uint)
+    (description (string-ascii 500)))
+  (let ((grant-id (var-get next-grant-id)))
+    (asserts! (> amount u0) (err u1)) ;; Amount must be positive
 
-    (map-set funders funder-id {
-      name: name,
+    ;; In a real implementation, you would verify the applicant and funder exist
+    ;; and check that the applicant is verified
+
+    (map-set grants grant-id {
+      applicant-id: applicant-id,
+      funder-id: funder-id,
+      amount: amount,
       description: description,
-      website: website,
-      contact-address: tx-sender,
-      active: true,
-      total-funds-committed: funds-committed,
-      registration-time: block-height
+      status: "pending",
+      creation-time: block-height,
+      disbursement-time: u0
     })
 
-    (var-set next-funder-id (+ funder-id u1))
-    (ok funder-id)))
+    (var-set next-grant-id (+ grant-id u1))
+    (ok grant-id)))
 
-;; Get funder details
-(define-read-only (get-funder (funder-id uint))
-  (map-get? funders funder-id))
+;; Get grant details
+(define-read-only (get-grant (grant-id uint))
+  (map-get? grants grant-id))
 
-;; Update funder status
-(define-public (update-funder-status (funder-id uint) (active bool))
-  (let ((funder (unwrap! (map-get? funders funder-id) (err u404))))
-    (asserts! (is-eq tx-sender (get contact-address funder)) (err u403))
+;; Approve a grant (would be called by the funder)
+(define-public (approve-grant (grant-id uint))
+  (let ((grant (unwrap! (map-get? grants grant-id) (err u404))))
+    ;; In a real implementation, you would verify the caller is the funder
 
-    (map-set funders funder-id (merge funder { active: active }))
+    (asserts! (is-eq (get status grant) "pending") (err u403))
+
+    (map-set grants grant-id
+      (merge grant { status: "approved" })
+    )
     (ok true)))
 
-;; Update committed funds
-(define-public (update-committed-funds (funder-id uint) (additional-funds uint))
-  (let ((funder (unwrap! (map-get? funders funder-id) (err u404))))
-    (asserts! (is-eq tx-sender (get contact-address funder)) (err u403))
+;; Reject a grant (would be called by the funder)
+(define-public (reject-grant (grant-id uint))
+  (let ((grant (unwrap! (map-get? grants grant-id) (err u404))))
+    ;; In a real implementation, you would verify the caller is the funder
 
-    (map-set funders funder-id
-      (merge funder {
-        total-funds-committed: (+ (get total-funds-committed funder) additional-funds)
+    (asserts! (is-eq (get status grant) "pending") (err u403))
+
+    (map-set grants grant-id
+      (merge grant { status: "rejected" })
+    )
+    (ok true)))
+
+;; Disburse funds for an approved grant
+(define-public (disburse-funds (grant-id uint))
+  (let ((grant (unwrap! (map-get? grants grant-id) (err u404))))
+    ;; In a real implementation, you would verify the caller is authorized
+
+    (asserts! (is-eq (get status grant) "approved") (err u403))
+
+    ;; In a real implementation, you would transfer tokens here
+
+    (map-set grants grant-id
+      (merge grant {
+        status: "disbursed",
+        disbursement-time: block-height
       })
     )
     (ok true)))

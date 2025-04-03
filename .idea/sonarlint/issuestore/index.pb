@@ -11,3 +11,7 @@ P
  contracts/fund-disbursement.clar,c/c/cc206d5b223168a3045df82f6ff6cc161d7d29d6
 O
 tests/fund-disbursement.test.ts,8/e/8e6514c563cca9a7caaa4790311a537befcd9d9a
+R
+"contracts/funder-registration.clar,8/c/8c3356822920f20a1b3f542d06868bfe7ae0c9a9
+Q
+!tests/funder-registration.test.ts,2/f/2f0434dabcfefb19f1d74511e1c4e5548e4bf833
