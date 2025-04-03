@@ -15,3 +15,7 @@ R
 "contracts/funder-registration.clar,8/c/8c3356822920f20a1b3f542d06868bfe7ae0c9a9
 Q
 !tests/funder-registration.test.ts,2/f/2f0434dabcfefb19f1d74511e1c4e5548e4bf833
+P
+ contracts/outcome-reporting.clar,6/c/6c2d8381bcc9b967cd316d7696e46dd8b564d6b2
+O
+tests/outcome-reporting.test.ts,b/e/be66a060854d9fa7285a477dc2ff2328c026b09f

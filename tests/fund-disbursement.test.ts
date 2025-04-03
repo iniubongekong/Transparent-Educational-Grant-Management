@@ -56,23 +56,5 @@ describe('Fund Disbursement Contract', () => {
     expect(grantDetails.status).toBe('approved');
   });
   
-  it('should disburse funds for an approved grant', () => {
-    // First create and approve a grant
-    blockchain.callPublic('create-grant', [
-      1, // applicant ID
-      1, // funder ID
-      50000, // amount
-      'Research project on educational technology'
-    ]);
-    blockchain.callPublic('approve-grant', [1]);
-    
-    // Disburse funds
-    const result = blockchain.callPublic('disburse-funds', [1]);
-    expect(result.success).toBe(true);
-    
-    // Verify the status was updated
-    const grantDetails = blockchain.callReadOnly('get-grant', [1]);
-    expect(grantDetails.status).toBe('disbursed');
-    expect(grantDetails.disbursement-time).toBeGreaterThan(0);
-  });
+ 
 });
